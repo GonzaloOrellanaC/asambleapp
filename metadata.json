@@ -1,0 +1,6 @@
+{
+  "name": "Asambleapp",
+  "description": "Plataforma de votaciones transparentes y organización",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
