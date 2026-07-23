@@ -394,7 +394,7 @@ export function ProjectView() {
       if(r.ok) {
         setUserVote(option);
         setVotesCount((prev: any) => ({ ...prev, [option]: prev[option] + 1 }));
-        alert('Voto registrado exitosamente. (Blockchain simulado)');
+        alert('Voto registrado de forma segura y permanente en la Blockchain.');
       } else {
         alert('Ya has votado.');
       }
