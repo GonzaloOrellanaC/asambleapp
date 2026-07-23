@@ -11,7 +11,7 @@ export function SuperAdmin() {
   const [confirmDeleteModal, setConfirmDeleteModal] = useState<{id: string, name: string} | null>(null);
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'system' | 'visits'>('system');
+  const [activeTab, setActiveTab] = useState<'system' | 'tickets' | 'visits'>('system');
   const [visitData, setVisitData] = useState<any>(null);
   const [loadingVisits, setLoadingVisits] = useState(true);
 
@@ -187,6 +187,16 @@ export function SuperAdmin() {
               Gestión de Sistema
             </button>
             <button
+              onClick={() => setActiveTab('tickets')}
+              className={`pb-4 px-6 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+                activeTab === 'tickets'
+                  ? 'border-slate-900 text-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Tickets de Soporte
+            </button>
+            <button
               onClick={() => setActiveTab('visits')}
               className={`pb-4 px-6 font-bold text-sm border-b-2 transition-all cursor-pointer ${
                 activeTab === 'visits'
@@ -198,8 +208,7 @@ export function SuperAdmin() {
             </button>
           </div>
 
-          {activeTab === 'system' ? (
-            <>
+          {activeTab === 'system' && (
 
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
@@ -242,8 +251,10 @@ export function SuperAdmin() {
               )}
             </div>
           </div>
-          
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mt-8">
+          )}
+
+          {activeTab === 'tickets' && (
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-slate-500">
                 Tickets de Soporte (AsambleApp)
@@ -320,8 +331,9 @@ export function SuperAdmin() {
               })}
             </div>
           </div>
-          </>
-          ) : (
+          )}
+
+          {activeTab === 'visits' && (
             <div className="space-y-8 font-sans">
               {loadingVisits || !visitData ? (
                 <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-500 font-medium">
