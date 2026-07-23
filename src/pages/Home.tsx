@@ -5,7 +5,7 @@ import { Shield, Users, BarChart3, ArrowRight, CheckCircle2, CalendarPlus, Messa
 
 export function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [hirePlan, setHirePlan] = useState<{name: string, type: "contratar" | "cotizar"} | null>(null);
+  const [hirePlan, setHirePlan] = useState<{ name: string, type: "contratar" | "cotizar" } | null>(null);
   const [hireForm, setHireForm] = useState({ name: "", email: "", phone: "", comments: "" });
   const [hireStatus, setHireStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -19,7 +19,7 @@ export function Home() {
             <span className="font-bold">Asamble</span><span className="font-normal">App</span>
           </span>
         </div>
-        
+
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
           <a href="#features" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Características</a>
@@ -29,7 +29,7 @@ export function Home() {
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button 
+        <button
           className="md:hidden p-2 text-slate-600 hover:text-slate-900"
           onClick={() => setIsMenuOpen(true)}
         >
@@ -40,7 +40,7 @@ export function Home() {
 
       {/* Mobile Sidebar */}
       <div className={`fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] transition-opacity md:hidden ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)}></div>
-      
+
       <div className={`fixed top-0 right-0 bottom-0 w-64 bg-white z-[101] shadow-2xl transition-transform duration-300 md:hidden flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-4 flex justify-end border-b border-slate-100">
           <button onClick={() => setIsMenuOpen(false)} className="p-2 text-slate-500 hover:text-slate-800">
@@ -63,11 +63,11 @@ export function Home() {
           Blockchain integrado para votaciones transparentes
         </div>
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 mb-8 leading-tight break-words">
-          Democracia Digital <br className="hidden md:block"/>
+          Democracia Digital <br className="hidden md:block" />
           <span className="text-brand-gradient">Segura y Transparente</span>
         </h1>
         <p className="text-xl text-slate-600 mb-12 max-w-3xl leading-relaxed">
-          Plataforma SaaS para instituciones gubernamentales, partidos políticos y organizaciones civiles. 
+          Plataforma SaaS para instituciones gubernamentales, partidos políticos y organizaciones civiles.
           Garantiza debates organizados, seguimiento legislativo y votaciones inmutables.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
@@ -87,7 +87,7 @@ export function Home() {
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Todo lo necesario para la toma de decisiones</h2>
             <p className="text-slate-500 text-lg">Módulos diseñados para escalar la participación ciudadana.</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-10">
             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100">
               <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
@@ -120,7 +120,7 @@ export function Home() {
         </div>
       </section>
 
-      
+
       {/* Blockchain Section */}
       <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
@@ -180,7 +180,7 @@ export function Home() {
         </div>
       </section>
 
-            {/* System Flow Section */}
+      {/* System Flow Section */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -190,11 +190,11 @@ export function Home() {
               Un flujo de trabajo diseñado para maximizar la participación y garantizar la total transparencia en las decisiones de tu organización.
             </p>
           </div>
-          
+
           <div className="relative">
             {/* Connecting line for desktop */}
             <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-100 via-blue-200 to-emerald-100 -translate-y-1/2 z-0"></div>
-            
+
             <div className="grid md:grid-cols-3 gap-12 relative z-10">
               {/* Step 1 */}
               <div className="flex flex-col items-center text-center group">
@@ -272,7 +272,7 @@ export function Home() {
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Asambleas virtuales y registro de participación</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Soporte por correo</span></li>
                   </ul>
-                  <button onClick={() => setHirePlan({name: "pyme", type: "contratar"})} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
+                  <button onClick={() => setHirePlan({ name: "pyme", type: "contratar" })} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
                 </div>
                 <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative">
                   <h4 className="text-xl font-bold text-slate-800 mb-2">Condominio Grande</h4>
@@ -286,7 +286,7 @@ export function Home() {
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Cómputo ponderado por prorrateo de dominio</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Soporte prioritario</span></li>
                   </ul>
-                  <button onClick={() => setHirePlan({name: "express_trial", type: "contratar"})} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
+                  <button onClick={() => setHirePlan({ name: "express_trial", type: "contratar" })} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
                 </div>
               </div>
             </div>
@@ -306,12 +306,12 @@ export function Home() {
                   </div>
                   <p className="text-slate-700 font-medium mb-6 bg-slate-100 p-3 rounded-lg text-center">Hasta 300 votantes</p>
                   <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Autenticación por RUT + SMS OTP / Email</span></li>
+                    <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Autenticación por RUT + Email</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Votación en línea segura y secreta</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Generación de Acta de Cierre</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Soporte básico por correo</span></li>
                   </ul>
-                  <button onClick={() => setHirePlan({name: "pyme", type: "contratar"})} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
+                  <button onClick={() => setHirePlan({ name: "pyme", type: "contratar" })} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
                 </div>
                 <div className="bg-brand-gradient p-8 rounded-3xl border border-transparent shadow-lg flex flex-col relative">
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-400 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Más Popular</div>
@@ -327,7 +327,7 @@ export function Home() {
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-200 shrink-0 mt-0.5" size={18} /> <span className="text-white text-sm">Trazabilidad y auditoría criptográfica</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-200 shrink-0 mt-0.5" size={18} /> <span className="text-white text-sm">Soporte en vivo durante el proceso</span></li>
                   </ul>
-                  <button onClick={() => setHirePlan({name: "pro", type: "contratar"})} className="w-full text-center bg-white text-blue-600 font-bold py-3 rounded-xl transition-colors hover:bg-blue-50">Contratar</button>
+                  <button onClick={() => setHirePlan({ name: "pro", type: "contratar" })} className="w-full text-center bg-white text-blue-600 font-bold py-3 rounded-xl transition-colors hover:bg-blue-50">Contratar</button>
                 </div>
               </div>
             </div>
@@ -352,7 +352,7 @@ export function Home() {
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Registro y trazabilidad de cómputos</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Soporte técnico para la federación</span></li>
                   </ul>
-                  <button onClick={() => setHirePlan({name: "express_trial", type: "contratar"})} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
+                  <button onClick={() => setHirePlan({ name: "express_trial", type: "contratar" })} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Contratar</button>
                 </div>
               </div>
             </div>
@@ -376,7 +376,7 @@ export function Home() {
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Reporte de resultados consolidado</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Apto para Trato Directo / Compra Ágil ({"<"} 40 UTM)</span></li>
                   </ul>
-                  <button onClick={() => setHirePlan({name: "pyme", type: "cotizar"})} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Cotizar</button>
+                  <button onClick={() => setHirePlan({ name: "pyme", type: "cotizar" })} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Cotizar</button>
                 </div>
                 <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col relative">
                   <h4 className="text-xl font-bold text-slate-800 mb-2">Público Avanzado</h4>
@@ -389,11 +389,11 @@ export function Home() {
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Sistema completo de debate de mociones estilo Congreso</span></li>
                     <li className="flex items-start gap-3"><CheckCircle2 className="text-blue-500 shrink-0 mt-0.5" size={18} /> <span className="text-slate-600 text-sm">Asistencia técnica en vivo y soporte dedicado</span></li>
                   </ul>
-                  <button onClick={() => setHirePlan({name: "saas", type: "cotizar"})} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Cotizar</button>
+                  <button onClick={() => setHirePlan({ name: "saas", type: "cotizar" })} className="w-full text-center bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-100 font-bold py-3 rounded-xl transition-colors">Cotizar</button>
                 </div>
               </div>
             </div>
-            
+
           </div>
         </div>
       </section>
@@ -404,7 +404,7 @@ export function Home() {
           <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
             Abre tu cuenta y configura tu plataforma de debates en minutos. Personalización completa para tu marca.
           </p>
-          
+
           <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-lg mx-auto shadow-2xl">
             <h3 className="text-2xl font-bold mb-6 text-blue-400">Prueba Gratis por 30 Días</h3>
             <ul className="text-left space-y-4 mb-8">
@@ -420,7 +420,7 @@ export function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-10 text-center">
         <p className="text-slate-500 font-medium">© 2026 Asambleapp SaaS. Todos los derechos reservados.</p>
@@ -435,18 +435,18 @@ export function Home() {
         </div>
         <p className="text-slate-400 text-sm mt-3">Desarrollada por <a href="https://omtecnologia.cl" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-500 hover:text-brand-primary transition-colors">OM Tecnología</a></p>
       </footer>
-    
+
       {/* Modal de Contratación/Cotización */}
       {hirePlan && (
         <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl relative">
-            <button 
+            <button
               onClick={() => { setHirePlan(null); setHireStatus('idle'); }}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
             >
               <X size={24} />
             </button>
-            
+
             {hireStatus === 'success' ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -454,7 +454,7 @@ export function Home() {
                 </div>
                 <h3 className="text-2xl font-bold text-slate-800 mb-2">¡Solicitud Enviada!</h3>
                 <p className="text-slate-600 mb-6">Nuestro equipo se pondrá en contacto contigo a la brevedad para {hirePlan.type === 'cotizar' ? 'enviarte una cotización' : 'gestionar la contratación'} del plan.</p>
-                <button 
+                <button
                   onClick={() => { setHirePlan(null); setHireStatus('idle'); }}
                   className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800"
                 >
@@ -465,14 +465,14 @@ export function Home() {
               <>
                 <h3 className="text-2xl font-bold text-slate-800 mb-2 capitalize">{hirePlan.type} Plan</h3>
                 <p className="text-slate-600 mb-6">Completa tus datos y te contactaremos para gestionar el plan seleccionado.</p>
-                
+
                 {hireStatus === 'error' && (
                   <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
                     Ocurrió un error al enviar la solicitud. Por favor intenta nuevamente.
                   </div>
                 )}
-                
-                <form 
+
+                <form
                   onSubmit={async (e) => {
                     e.preventDefault();
                     setHireStatus('loading');
@@ -495,38 +495,38 @@ export function Home() {
                 >
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
-                    <input 
+                    <input
                       type="text" required
-                      value={hireForm.name} onChange={e => setHireForm({...hireForm, name: e.target.value})}
+                      value={hireForm.name} onChange={e => setHireForm({ ...hireForm, name: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-                    <input 
+                    <input
                       type="email" required
-                      value={hireForm.email} onChange={e => setHireForm({...hireForm, email: e.target.value})}
+                      value={hireForm.email} onChange={e => setHireForm({ ...hireForm, email: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
-                    <input 
+                    <input
                       type="text" required
-                      value={hireForm.phone} onChange={e => setHireForm({...hireForm, phone: e.target.value})}
+                      value={hireForm.phone} onChange={e => setHireForm({ ...hireForm, phone: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Comentarios (Opcional)</label>
-                    <textarea 
+                    <textarea
                       rows={3}
-                      value={hireForm.comments} onChange={e => setHireForm({...hireForm, comments: e.target.value})}
+                      value={hireForm.comments} onChange={e => setHireForm({ ...hireForm, comments: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
                     ></textarea>
                   </div>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={hireStatus === 'loading'}
                     className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:opacity-70 mt-2"
                   >
@@ -538,6 +538,6 @@ export function Home() {
           </div>
         </div>
       )}
-</div>
+    </div>
   );
 }
