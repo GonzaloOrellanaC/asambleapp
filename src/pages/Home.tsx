@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { Shield, Users, BarChart3, ArrowRight, CheckCircle2, CalendarPlus, MessageSquare, CheckSquare, Fingerprint, Menu, X, Vote } from 'lucide-react';
@@ -8,6 +8,27 @@ export function Home() {
   const [hirePlan, setHirePlan] = useState<{ name: string, type: "contratar" | "cotizar" } | null>(null);
   const [hireForm, setHireForm] = useState({ name: "", email: "", phone: "", comments: "" });
   const [hireStatus, setHireStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  useEffect(() => {
+    const width = window.innerWidth;
+    let deviceType = "desktop";
+    if (width < 768) {
+      deviceType = "mobile";
+    } else if (width >= 768 && width < 1024) {
+      deviceType = "tablet";
+    }
+
+    apiFetch('/api/visits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        screenWidth: window.screen.width || window.innerWidth,
+        screenHeight: window.screen.height || window.innerHeight,
+        deviceType,
+        referer: document.referrer || ''
+      })
+    }).catch(err => console.error("Error logging visit", err));
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-blue-200 overflow-x-hidden">

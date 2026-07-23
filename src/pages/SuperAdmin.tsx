@@ -1,7 +1,7 @@
 import { apiFetch } from '../lib/api';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, Settings, User, Trash2 } from 'lucide-react';
+import { Building2, Plus, Settings, User, Trash2, Eye, Activity, Monitor, Smartphone, Tablet, Globe, ExternalLink, Calendar } from 'lucide-react';
 import { UserPopover } from '../components/UserPopover';
 
 export function SuperAdmin() {
@@ -10,6 +10,10 @@ export function SuperAdmin() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteModal, setConfirmDeleteModal] = useState<{id: string, name: string} | null>(null);
   const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState<'system' | 'visits'>('system');
+  const [visitData, setVisitData] = useState<any>(null);
+  const [loadingVisits, setLoadingVisits] = useState(true);
 
   const loadOrgs = () => {
     apiFetch('/api/organizations')
@@ -22,12 +26,24 @@ export function SuperAdmin() {
       .catch(() => {});
   };
 
+  const loadVisits = () => {
+    setLoadingVisits(true);
+    apiFetch('/api/visits')
+      .then(r => r.json())
+      .then(data => {
+        setVisitData(data);
+        setLoadingVisits(false);
+      })
+      .catch(() => setLoadingVisits(false));
+  };
+
   useEffect(() => {
     if (localStorage.getItem('superadminToken') !== 'true') {
       navigate('/login-superadmin');
       return;
     }
     loadOrgs();
+    loadVisits();
   }, [navigate]);
 
   const executeDelete = async () => {
@@ -142,11 +158,48 @@ export function SuperAdmin() {
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">Panel de Super Administrador</h1>
               <p className="text-slate-500 mt-1 text-sm">Gestión global de organizaciones y facturación.</p>
             </div>
-            <button className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 text-sm">
-              <Plus size={18} />
-              Nueva Organización
+            {activeTab === 'system' && (
+              <button className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 text-sm">
+                <Plus size={18} />
+                Nueva Organización
+              </button>
+            )}
+            {activeTab === 'visits' && (
+              <button 
+                onClick={loadVisits} 
+                className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 text-sm"
+              >
+                <Activity size={18} />
+                Actualizar
+              </button>
+            )}
+          </div>
+
+          <div className="flex border-b border-slate-200 mb-8 font-sans">
+            <button
+              onClick={() => setActiveTab('system')}
+              className={`pb-4 px-6 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+                activeTab === 'system'
+                  ? 'border-slate-900 text-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Gestión de Sistema
+            </button>
+            <button
+              onClick={() => setActiveTab('visits')}
+              className={`pb-4 px-6 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+                activeTab === 'visits'
+                  ? 'border-slate-900 text-slate-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Visitas y Analítica
             </button>
           </div>
+
+          {activeTab === 'system' ? (
+            <>
 
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
@@ -267,7 +320,170 @@ export function SuperAdmin() {
               })}
             </div>
           </div>
-          
+          </>
+          ) : (
+            <div className="space-y-8 font-sans">
+              {loadingVisits || !visitData ? (
+                <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-500 font-medium">
+                  Cargando estadísticas de visitas...
+                </div>
+              ) : (
+                <>
+                  {/* KPI Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <Eye size={24} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Visitas</p>
+                        <h4 className="text-2xl font-extrabold text-slate-900">{visitData.totalVisits}</h4>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <User size={24} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Visitas Únicas</p>
+                        <h4 className="text-2xl font-extrabold text-slate-900">{visitData.uniqueVisits}</h4>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <Monitor size={24} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dispositivos</p>
+                        <div className="text-xs space-y-0.5 text-slate-600 mt-0.5">
+                          <p className="flex justify-between"><span>Desktop:</span> <strong>{visitData.devices.desktop || 0}</strong></p>
+                          <p className="flex justify-between"><span>Móvil:</span> <strong>{visitData.devices.mobile || 0}</strong></p>
+                          <p className="flex justify-between"><span>Tablet:</span> <strong>{visitData.devices.tablet || 0}</strong></p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                        <Globe size={24} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Navegadores Top</p>
+                        <div className="text-xs space-y-0.5 text-slate-600 mt-0.5">
+                          {Object.entries(visitData.browsers).slice(0, 3).map(([browser, count]) => (
+                            <p key={browser} className="flex justify-between truncate">
+                              <span className="truncate">{browser}:</span> <strong>{count as any}</strong>
+                            </p>
+                          ))}
+                          {Object.keys(visitData.browsers).length === 0 && <p className="text-slate-400">Sin datos</p>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                      <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Sistemas Operativos</h3>
+                      <div className="space-y-2">
+                        {Object.entries(visitData.operatingSystems).map(([osName, count]) => (
+                          <div key={osName} className="flex justify-between items-center text-sm text-slate-600">
+                            <span className="font-semibold">{osName}</span>
+                            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-xs font-mono font-bold">{count as any}</span>
+                          </div>
+                        ))}
+                        {Object.keys(visitData.operatingSystems).length === 0 && (
+                          <p className="text-slate-400 text-sm text-center py-4">No hay datos registrados</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                      <h3 className="font-bold text-sm text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Navegadores</h3>
+                      <div className="space-y-2">
+                        {Object.entries(visitData.browsers).map(([bName, count]) => (
+                          <div key={bName} className="flex justify-between items-center text-sm text-slate-600">
+                            <span className="font-semibold">{bName}</span>
+                            <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-xs font-mono font-bold">{count as any}</span>
+                          </div>
+                        ))}
+                        {Object.keys(visitData.browsers).length === 0 && (
+                          <p className="text-slate-400 text-sm text-center py-4">No hay datos registrados</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                      <h3 className="font-bold text-xs text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                        <Calendar size={16} />
+                        Historial de Visitas Recientes (Últimos 200)
+                      </h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm text-slate-600">
+                        <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200">
+                          <tr>
+                            <th className="p-4">Fecha/Hora</th>
+                            <th className="p-4">IP</th>
+                            <th className="p-4">Dispositivo</th>
+                            <th className="p-4">SO</th>
+                            <th className="p-4">Navegador</th>
+                            <th className="p-4">Idioma</th>
+                            <th className="p-4">Procedencia</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {visitData.recentVisits.map((visit: any) => {
+                            const dateStr = new Date(visit.visitedAt).toLocaleString();
+                            return (
+                              <tr key={visit._id || visit.id} className="hover:bg-slate-50 transition-colors">
+                                <td className="p-4 font-medium text-slate-800">{dateStr}</td>
+                                <td className="p-4 font-mono text-xs">{visit.ip}</td>
+                                <td className="p-4">
+                                  <div className="flex flex-col">
+                                    <span className="capitalize font-semibold text-slate-700">{visit.deviceType}</span>
+                                    {visit.screenWidth && (
+                                      <span className="text-[10px] text-slate-400">{visit.screenWidth}x{visit.screenHeight}</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-4">{visit.os}</td>
+                                <td className="p-4">{visit.browser}</td>
+                                <td className="p-4 font-mono text-xs uppercase">{visit.language || '-'}</td>
+                                <td className="p-4 max-w-[180px] truncate" title={visit.referer}>
+                                  {visit.referer ? (
+                                    <a 
+                                      href={visit.referer} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      className="text-blue-600 hover:underline flex items-center gap-1 inline-flex"
+                                    >
+                                      <span className="truncate max-w-[140px]">{visit.referer}</span>
+                                      <ExternalLink size={10} />
+                                    </a>
+                                  ) : (
+                                    <span className="text-slate-400 italic text-xs">Directo</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {visitData.recentVisits.length === 0 && (
+                            <tr>
+                              <td colSpan={7} className="p-8 text-center text-slate-400 italic">No hay visitas registradas aún</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

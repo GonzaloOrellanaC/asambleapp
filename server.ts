@@ -182,6 +182,20 @@ const passwordResetTokenSchema = new mongoose.Schema({
 }, schemaOptions);
 const PasswordResetToken = mongoose.model('PasswordResetToken', passwordResetTokenSchema);
 
+const landingVisitSchema = new mongoose.Schema({
+  ip: String,
+  userAgent: String,
+  browser: String,
+  os: String,
+  referer: String,
+  language: String,
+  screenWidth: Number,
+  screenHeight: Number,
+  deviceType: String,
+  visitedAt: { type: Date, default: Date.now }
+}, schemaOptions);
+const LandingVisit = mongoose.model('LandingVisit', landingVisitSchema);
+
 
 
 
@@ -565,6 +579,82 @@ async function startServer() {
   app.post("/api/logout", (req, res) => {
     res.clearCookie('userId');
     res.json({ success: true });
+  });
+
+  app.post("/api/visits", async (req, res) => {
+    try {
+      const userAgent = req.headers['user-agent'] || '';
+      const ip = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '').split(',')[0].trim();
+      const referer = req.headers['referer'] || req.body.referer || '';
+      const language = req.headers['accept-language'] || '';
+      const { screenWidth, screenHeight, deviceType } = req.body;
+
+      let os = "Desconocido";
+      if (/windows/i.test(userAgent)) os = "Windows";
+      else if (/macintosh|mac os x/i.test(userAgent)) os = "macOS";
+      else if (/android/i.test(userAgent)) os = "Android";
+      else if (/iphone|ipad|ipod/i.test(userAgent)) os = "iOS";
+      else if (/linux/i.test(userAgent)) os = "Linux";
+
+      let browser = "Desconocido";
+      if (/chrome|crios/i.test(userAgent) && !/edge|edg/i.test(userAgent) && !/opr/i.test(userAgent)) browser = "Chrome";
+      else if (/safari/i.test(userAgent) && !/chrome|crios/i.test(userAgent)) browser = "Safari";
+      else if (/firefox|fxios/i.test(userAgent)) browser = "Firefox";
+      else if (/edge|edg/i.test(userAgent)) browser = "Edge";
+      else if (/opr/i.test(userAgent)) browser = "Opera";
+
+      await LandingVisit.create({
+        ip,
+        userAgent,
+        browser,
+        os,
+        referer,
+        language: language.split(',')[0] || '',
+        screenWidth,
+        screenHeight,
+        deviceType: deviceType || "desktop",
+        visitedAt: new Date()
+      });
+
+      res.json({ success: true });
+    } catch (e) {
+      console.error("Error saving visit:", e);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  app.get("/api/visits", async (req, res) => {
+    try {
+      const totalVisits = await LandingVisit.countDocuments();
+      
+      const uniqueVisitsArray = await LandingVisit.distinct("ip");
+      const uniqueVisits = uniqueVisitsArray.length;
+
+      const devices = await LandingVisit.aggregate([
+        { $group: { _id: "$deviceType", count: { $sum: 1 } } }
+      ]);
+
+      const browsers = await LandingVisit.aggregate([
+        { $group: { _id: "$browser", count: { $sum: 1 } } }
+      ]);
+
+      const operatingSystems = await LandingVisit.aggregate([
+        { $group: { _id: "$os", count: { $sum: 1 } } }
+      ]);
+
+      const recentVisits = await LandingVisit.find().sort({ visitedAt: -1 }).limit(200);
+
+      res.json({
+        totalVisits,
+        uniqueVisits,
+        devices: devices.reduce((acc, curr) => ({ ...acc, [curr._id || "Desconocido"]: curr.count }), {}),
+        browsers: browsers.reduce((acc, curr) => ({ ...acc, [curr._id || "Desconocido"]: curr.count }), {}),
+        operatingSystems: operatingSystems.reduce((acc, curr) => ({ ...acc, [curr._id || "Desconocido"]: curr.count }), {}),
+        recentVisits
+      });
+    } catch (e) {
+      res.status(500).json({ error: "Server error" });
+    }
   });
 
   app.get("/api/organizations", async (req, res) => {
