@@ -12,7 +12,7 @@ export function SupportTicketPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [myTickets, setMyTickets] = useState<any[]>([]);
 
-  const isAdmin = currentUser?.role === 'admin';
+  const isAdmin = currentUser?.role === 'administrador' || currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
   const userId = currentUser?._id || currentUser?.id;
   const orgId = org?._id || org?.id;
 
