@@ -9,6 +9,11 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import cookieParser from "cookie-parser";
+import dns from 'dns';
+
+// Configure DNS to use Google's DNS servers
+dns.setDefaultResultOrder('ipv4first');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/asambleapp";
@@ -16,7 +21,7 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/asambl
 const schemaOptions = {
   toJSON: {
     virtuals: true,
-    transform: function(doc: any, ret: any) {
+    transform: function (doc: any, ret: any) {
       delete ret._id;
       delete ret.__v;
       return ret;
@@ -204,7 +209,7 @@ class SimpleBlockchain {
     const previousHash = latestBlock ? latestBlock.hash : "0";
     const timestamp = new Date();
     const hash = await this.calculateHash(index, previousHash, timestamp, data);
-    
+
     const newBlock = await Block.create({
       index,
       timestamp,
@@ -347,12 +352,12 @@ async function checkExpiredTrials() {
     });
 
     for (const org of expiredOrgs) {
-      const admins = await User.find({ 
+      const admins = await User.find({
         'organizations': { $elemMatch: { orgId: org._id, role: 'administrador' } }
       });
-      
+
       const adminEmails = admins.map((u: any) => u.email).filter(Boolean);
-      
+
       if (adminEmails.length > 0 && process.env.SMTP_USER && process.env.SMTP_PASS) {
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -385,16 +390,16 @@ async function checkExpiredTrials() {
             subject: "Tu periodo de prueba en AsambleApp ha finalizado",
             html: htmlTemplate,
           });
-          
+
           org.expirationEmailSent = true;
           await org.save();
         } catch (emailError) {
           console.error(`Error enviando correo de expiración a ${org.name}:`, emailError);
         }
       } else {
-         // Mark as sent even if no email is configured, so we don't keep trying
-         org.expirationEmailSent = true;
-         await org.save();
+        // Mark as sent even if no email is configured, so we don't keep trying
+        org.expirationEmailSent = true;
+        await org.save();
       }
     }
   } catch (error) {
@@ -439,12 +444,12 @@ const actionQueue = new WorkQueue();
 async function startServer() {
   const app = express();
   const PORT = process.env.APP_PORT || 3000;
-  
+
   const server = http.createServer(app);
   const io = new SocketIOServer(server, { cors: { origin: '*' } });
-  
+
   app.set('io', io);
-  
+
   io.on('connection', (socket) => {
     console.log('User connected', socket.id);
     socket.on('join_project', (projectId) => {
@@ -480,11 +485,11 @@ async function startServer() {
     destination: async (req, file, cb) => {
       try {
         let folderName = 'general';
-        
+
         const authHeader = req.headers.authorization;
         const token = authHeader ? authHeader.split(' ')[1] : null;
         const userId = token || req.cookies?.userId;
-        
+
         if (userId) {
           const user = await User.findById(userId).populate('orgId');
           if (user && user.orgId && (user.orgId as any).timestampId) {
@@ -538,7 +543,7 @@ async function startServer() {
   });
 
   // API Routes
-  
+
   app.get("/api/users/me", async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
@@ -570,7 +575,7 @@ async function startServer() {
       res.status(500).json({ error: "Server error" });
     }
   });
-  
+
   app.post("/api/tickets", async (req, res) => {
     try {
       const ticket = await Ticket.create(req.body);
@@ -730,21 +735,21 @@ async function startServer() {
       res.status(500).json({ error: "Server error" });
     }
   });
-  
+
   app.delete("/api/organizations/:id", async (req, res) => {
     try {
       const orgId = req.params.id;
       await Organization.findByIdAndDelete(orgId);
       await Department.deleteMany({ orgId });
       await User.deleteMany({ orgId });
-      
+
       const projects = await Project.find({ orgId });
       const projectIds = projects.map(p => p._id);
-      
+
       await Project.deleteMany({ orgId });
       await Discussion.deleteMany({ projectId: { $in: projectIds } });
       await Vote.deleteMany({ projectId: { $in: projectIds } });
-      
+
       res.json({ success: true });
     } catch (e) {
       res.status(500).json({ error: "Error deleting organization" });
@@ -764,7 +769,7 @@ async function startServer() {
     }
   });
 
-  
+
   app.post("/api/organizations/:id", async (req, res) => {
     try {
       console.log("UPDATE ORG BODY", req.body);
@@ -776,7 +781,7 @@ async function startServer() {
       if (settings !== undefined) updateData.settings = settings;
 
       const org = await Organization.findByIdAndUpdate(
-        req.params.id, 
+        req.params.id,
         { $set: updateData },
         { new: true }
       );
@@ -821,13 +826,13 @@ async function startServer() {
   app.get("/api/projects/:orgId", async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
-        const token = authHeader ? authHeader.split(' ')[1] : null;
-        const userId = token || req.cookies?.userId;
+      const token = authHeader ? authHeader.split(' ')[1] : null;
+      const userId = token || req.cookies?.userId;
       let user = null;
       if (userId) {
         user = await User.findById(userId);
       }
-      
+
       let filter: any = { orgId: req.params.orgId };
       if (user && user.role === 'usuario') {
         filter.invitedUsers = user._id;
@@ -845,9 +850,9 @@ async function startServer() {
       const authHeader = req.headers.authorization;
       const token = authHeader ? authHeader.split(' ')[1] : null;
       const userId = token || req.cookies?.userId;
-      
+
       const { orgId, title, content, status, maxChars, maxAudioTime, debateStartTime, debateClosingTime, votingClosingTime, pdfUrl, pdfName, invitedUsers, restrictBannedWords, republishedFromId } = req.body;
-      const project = await Project.create({ 
+      const project = await Project.create({
         orgId, title, content, status: status || 'debate',
         maxChars, maxAudioTime, debateStartTime, debateClosingTime, votingClosingTime, pdfUrl, pdfName,
         restrictBannedWords: restrictBannedWords !== undefined ? restrictBannedWords : true,
@@ -870,7 +875,7 @@ async function startServer() {
           type: 'invitation'
         }));
         await Notification.insertMany(notifications);
-        
+
         const io = req.app.get('io');
         if (io) {
           invitedUsers.forEach((uid: string) => {
@@ -890,15 +895,15 @@ async function startServer() {
       const authHeader = req.headers.authorization;
       const token = authHeader ? authHeader.split(' ')[1] : null;
       const userId = token || req.cookies?.userId;
-      
+
       if (!userId) return res.status(401).json({ error: "No autenticado" });
-      
+
       const user = await User.findById(userId);
       if (!user) return res.status(401).json({ error: "No autenticado" });
-      
+
       const project = await Project.findById(req.params.id).populate('invitedUsers');
       if (!project) return res.status(404).json({ error: "Proyecto no encontrado" });
-      
+
       if (user.role === 'administrador' || user.role === 'admin' || (user.role === 'editor' && project.createdBy?.toString() === userId)) {
         await Project.findByIdAndDelete(req.params.id);
         await Discussion.deleteMany({ projectId: req.params.id });
@@ -923,13 +928,13 @@ async function startServer() {
         if (userId) {
           user = await User.findById(userId);
         }
-        
+
         if (user && user.role === 'usuario') {
           if (!project.invitedUsers || !project.invitedUsers.includes(user._id)) {
             return res.status(403).json({ error: "No tienes acceso a este proyecto" });
           }
         }
-        
+
         res.json(project);
       } else {
         res.status(404).json({ error: "Not found" });
@@ -944,18 +949,18 @@ async function startServer() {
       const { userId, type } = req.body;
       const discussion = await Discussion.findById(req.params.id);
       if (!discussion) return res.status(404).json({ error: 'Not found' });
-      
+
       discussion.likes = discussion.likes.filter(id => id.toString() !== userId);
       discussion.dislikes = discussion.dislikes.filter(id => id.toString() !== userId);
-      
+
       if (type === 'like') {
         discussion.likes.push(userId);
       } else if (type === 'dislike') {
         discussion.dislikes.push(userId);
       }
-      
+
       await discussion.save();
-      
+
       const io = req.app.get('io');
       if (io) {
         io.to(discussion.projectId.toString()).emit('update_reaction', {
@@ -964,7 +969,7 @@ async function startServer() {
           dislikes: discussion.dislikes
         });
       }
-      
+
       res.json({ success: true, likes: discussion.likes, dislikes: discussion.dislikes });
     } catch (e) {
       res.status(500).json({ error: "Server error" });
@@ -989,7 +994,7 @@ async function startServer() {
   app.post("/api/discussions", async (req, res) => {
     try {
       const { projectId, userId, content, type } = req.body;
-      
+
       const project = await Project.findById(projectId).populate('orgId');
       if (project && project.restrictBannedWords && type === 'text') {
         const org = project.orgId as any;
@@ -1001,7 +1006,7 @@ async function startServer() {
           }
         }
       }
-      
+
       const obj = await actionQueue.add(async () => {
         const existing = await Discussion.findOne({ projectId, userId });
         if (existing) {
@@ -1013,24 +1018,24 @@ async function startServer() {
           }
           throw new Error("El usuario ya ha intervenido en este proyecto");
         }
-        
+
         const newMsg = await Discussion.create({
           projectId,
           userId,
           content,
           type,
         });
-        
+
         const populatedMsg = await newMsg.populate('userId');
         const obj = populatedMsg.toJSON() as any;
         obj.user = populatedMsg.userId;
         return obj;
       });
-      
+
       const io = req.app.get('io');
       if (io) {
         io.to(projectId).emit('new_message', obj);
-        
+
         // Notify other users
         if (project && project.invitedUsers && project.invitedUsers.length > 0) {
           const receivers = project.invitedUsers.filter((uid: any) => uid.toString() !== userId);
@@ -1044,14 +1049,14 @@ async function startServer() {
               type: 'chat_message'
             }));
             await Notification.insertMany(notifications);
-            
+
             receivers.forEach((uid: any) => {
               io.to(uid.toString()).emit('new_notification', { title: "Nuevo mensaje de debate", message: `${obj.user.name} ha enviado un mensaje en "${project.title}".` });
             });
           }
         }
       }
-      
+
       res.json(obj);
     } catch (e: any) {
       res.status(400).json({ error: e.message || "Bad request" });
@@ -1081,7 +1086,7 @@ async function startServer() {
   app.post("/api/votes", async (req, res) => {
     try {
       const { projectId, userId, option } = req.body;
-      
+
       const newVote = await actionQueue.add(async () => {
         const existing = await Vote.findOne({ projectId, userId });
         if (existing) {
@@ -1095,7 +1100,7 @@ async function startServer() {
         }
 
         const vote = await Vote.create({ projectId, userId, option });
-        
+
         // Add to auditable blockchain, ensuring secret vote by not recording userId
         await blockchain.addBlock({
           type: 'VOTE_EMITTED',
@@ -1103,16 +1108,16 @@ async function startServer() {
           option, // Opción registrada para auditoría transparente
           timestamp: new Date().toISOString()
         });
-        
+
         return vote;
       });
-      
+
       res.json(newVote);
     } catch (e: any) {
       res.status(400).json({ error: e.message || "Bad request" });
     }
   });
-  
+
   app.get("/api/votes/:projectId", async (req, res) => {
     try {
       const votes = await Vote.find({ projectId: req.params.projectId }).populate('userId');
@@ -1120,16 +1125,16 @@ async function startServer() {
     } catch (e) {
       res.status(500).json({ error: "Server error" });
 
-  app.get("/api/votes/org/:orgId", async (req, res) => {
-    try {
-      const projects = await Project.find({ orgId: req.params.orgId });
-      const projectIds = projects.map(p => p._id);
-      const votes = await Vote.find({ projectId: { $in: projectIds } });
-      res.json(votes);
-    } catch (e) {
-      res.status(500).json({ error: "Server error" });
-    }
-  });
+      app.get("/api/votes/org/:orgId", async (req, res) => {
+        try {
+          const projects = await Project.find({ orgId: req.params.orgId });
+          const projectIds = projects.map(p => p._id);
+          const votes = await Vote.find({ projectId: { $in: projectIds } });
+          res.json(votes);
+        } catch (e) {
+          res.status(500).json({ error: "Server error" });
+        }
+      });
 
     }
   });
@@ -1143,11 +1148,11 @@ async function startServer() {
     }
   });
 
-  
+
   app.delete("/api/departments/:id", async (req, res) => {
     try {
       const deptId = req.params.id;
-      
+
       // Find subgroups
       const subDepts = await Department.find({ parentId: deptId });
       const idsToRemove = [deptId, ...subDepts.map(d => d._id.toString())];
@@ -1164,14 +1169,14 @@ async function startServer() {
 
       // Delete departments
       await Department.deleteMany({ _id: { $in: idsToRemove } });
-      
+
       res.json({ success: true });
     } catch (e) {
       console.error(e);
       res.status(500).json({ error: "Server error", details: String(e) });
     }
   });
-app.post("/api/departments", async (req, res) => {
+  app.post("/api/departments", async (req, res) => {
     try {
       const { orgId, name, description, parentId } = req.body;
       const dept = await Department.create({ orgId, name, description, parentId });
@@ -1190,13 +1195,13 @@ app.post("/api/departments", async (req, res) => {
     }
   });
 
-  
+
   app.put("/api/users/org/:orgId/:userId", async (req, res) => {
     try {
       const { departmentIds, notificationPreferences } = req.body;
       const user = await User.findById(req.params.userId);
       if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
-      
+
       if (departmentIds !== undefined) {
         user.departmentIds = departmentIds;
         if (departmentIds && departmentIds.length > 0) {
@@ -1209,7 +1214,7 @@ app.post("/api/departments", async (req, res) => {
       if (notificationPreferences !== undefined) {
         user.notificationPreferences = notificationPreferences;
       }
-      
+
       await user.save();
       res.json({ success: true });
     } catch (e) {
@@ -1217,7 +1222,7 @@ app.post("/api/departments", async (req, res) => {
       res.status(500).json({ error: "Error updating user" });
     }
   });
-app.post("/api/users", async (req, res) => {
+  app.post("/api/users", async (req, res) => {
     try {
       const { orgId, name, email, role, departmentId, departmentIds } = req.body;
       const user = await User.create({ orgId, name, email, role, departmentId, departmentIds: departmentIds || (departmentId ? [departmentId] : []) });
@@ -1232,7 +1237,7 @@ app.post("/api/users", async (req, res) => {
       const { orgName, adminEmail, adminPassword, plan } = req.body;
       let baseSlug = orgName.toLowerCase().replace(/[^a-z0-9]/g, '');
       if (!baseSlug) baseSlug = 'org';
-      
+
       let customUrl = baseSlug;
       let counter = 1;
       while (await Organization.findOne({ customUrl })) {
@@ -1252,7 +1257,7 @@ app.post("/api/users", async (req, res) => {
         clientId: nextClientId,
         timestampId
       });
-      
+
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
@@ -1281,7 +1286,7 @@ app.post("/api/users", async (req, res) => {
         });
 
         const confirmUrl = `${process.env.APP_URL || 'http://localhost:3000'}/confirm-email/${token}`;
-        
+
         const htmlTemplate = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 40px 20px; border-radius: 12px;">
             <div style="background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -1315,11 +1320,11 @@ app.post("/api/users", async (req, res) => {
     }
   });
 
-  
+
   app.post("/api/request-plan", async (req, res) => {
     try {
       const { name, email, phone, comments, planId, type } = req.body;
-      
+
       if (process.env.SMTP_USER && process.env.SMTP_PASS) {
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -1347,7 +1352,7 @@ app.post("/api/users", async (req, res) => {
           html: htmlTemplate,
         });
       }
-      
+
       res.json({ success: true });
     } catch (e) {
       console.error('Error sending email:', e);
@@ -1376,7 +1381,7 @@ app.post("/api/users", async (req, res) => {
         });
 
         const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password/${token}`;
-        
+
         // Estilos de la aplicación en el correo
         const htmlTemplate = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 40px 20px; border-radius: 12px;">
@@ -1398,7 +1403,7 @@ app.post("/api/users", async (req, res) => {
           html: htmlTemplate,
         });
       }
-      
+
       res.json({ success: true });
     } catch (e) {
       console.error(e);
@@ -1410,14 +1415,14 @@ app.post("/api/users", async (req, res) => {
     try {
       const { token, password } = req.body;
       const resetToken = await PasswordResetToken.findOne({ token });
-      
+
       if (!resetToken) {
         return res.status(400).json({ error: "El enlace es inválido o ha expirado" });
       }
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
-      
+
       await User.findByIdAndUpdate(resetToken.userId, { password: hashedPassword });
       await PasswordResetToken.deleteOne({ _id: resetToken._id });
 
@@ -1427,11 +1432,11 @@ app.post("/api/users", async (req, res) => {
       res.status(500).json({ error: "Error procesando solicitud" });
     }
   });
-app.post("/api/login", async (req, res) => {
+  app.post("/api/login", async (req, res) => {
     try {
       const { email, password } = req.body;
       const user = await User.findOne({ email }).populate('orgId').populate('organizations.orgId');
-      
+
       if (!user) {
         return res.status(401).json({ error: "Credenciales incorrectas" });
       }
@@ -1456,7 +1461,7 @@ app.post("/api/login", async (req, res) => {
         // If the user has no password at all
         return res.status(401).json({ error: "Credenciales incorrectas" });
       }
-      
+
       res.cookie('userId', user._id.toString(), {
         httpOnly: true,
         secure: true,
@@ -1476,7 +1481,7 @@ app.post("/api/login", async (req, res) => {
       const hours = parseInt(expiresInHours) || 24;
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + hours);
-      
+
       const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
       const link = await EnrollmentLink.create({ orgId, role, token, expiresAt });
       res.json({ success: true, token });
@@ -1500,10 +1505,10 @@ app.post("/api/login", async (req, res) => {
   app.post("/api/enrollment/complete", async (req, res) => {
     try {
       const { email, token, password, name } = req.body;
-      
+
       const link = await EnrollmentLink.findOne({ token });
       if (!link) return res.status(400).json({ error: "Enlace inválido o expirado" });
-      
+
       // Check for expiration manually since we are not using TTL index for it in this dev setup
       if (new Date() > new Date(link.expiresAt)) {
         return res.status(400).json({ error: "El enlace ha expirado" });
@@ -1517,7 +1522,7 @@ app.post("/api/login", async (req, res) => {
           // Check if password matches
           const isMatch = await bcrypt.compare(password, existingUser.password);
           if (!isMatch) return res.status(400).json({ error: "Contraseña incorrecta para el usuario existente" });
-          
+
           // Check if already in org
           const alreadyInOrg = existingUser.organizations?.some(o => o.orgId.toString() === link.orgId.toString()) || existingUser.orgId?.toString() === link.orgId.toString();
           if (alreadyInOrg) return res.status(400).json({ error: "El usuario ya pertenece a esta organización" });
@@ -1558,7 +1563,7 @@ app.post("/api/login", async (req, res) => {
         });
 
         const confirmUrl = `${process.env.APP_URL || 'http://localhost:3000'}/confirm-email/${confirmToken}`;
-        
+
         const htmlTemplate = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 40px 20px; border-radius: 12px;">
             <div style="background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -1606,7 +1611,7 @@ app.post("/api/login", async (req, res) => {
 
       user.verified = true;
       await user.save();
-      
+
       await EmailToken.deleteOne({ _id: emailToken._id });
 
       res.json({ success: true, orgUrl: (user.orgId as any).customUrl });

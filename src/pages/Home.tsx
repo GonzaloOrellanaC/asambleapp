@@ -424,7 +424,16 @@ export function Home() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-10 text-center">
         <p className="text-slate-500 font-medium">© 2026 Asambleapp SaaS. Todos los derechos reservados.</p>
-        <p className="text-slate-400 text-sm mt-2">Desarrollada por <a href="https://omtecnologia.cl" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-500 hover:text-brand-primary transition-colors">OM Tecnología</a></p>
+        <div className="flex justify-center items-center gap-4 mt-3 text-sm">
+          <Link to="/terminos-y-condiciones" className="text-slate-500 hover:text-blue-600 font-semibold transition-colors">
+            Términos y Condiciones
+          </Link>
+          <span className="text-slate-300">|</span>
+          <Link to="/proteccion-de-datos" className="text-slate-500 hover:text-blue-600 font-semibold transition-colors">
+            Protección de Datos
+          </Link>
+        </div>
+        <p className="text-slate-400 text-sm mt-3">Desarrollada por <a href="https://omtecnologia.cl" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-500 hover:text-brand-primary transition-colors">OM Tecnología</a></p>
       </footer>
     
       {/* Modal de Contratación/Cotización */}

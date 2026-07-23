@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './pages/Home';
+import { TermsAndConditions } from './pages/TermsAndConditions';
+import { DataProtection } from './pages/DataProtection';
 import { OrgDashboard } from './pages/OrgDashboard';
 import { ProjectView } from './pages/ProjectView';
 import { SuperAdmin } from './pages/SuperAdmin';
@@ -49,7 +51,9 @@ export default function App() {
       <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
         <Routes>
           <Route path="/" element={<Home />} />
-                    <Route path="/register" element={<Register />} />
+          <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />
+          <Route path="/proteccion-de-datos" element={<DataProtection />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/login" element={<Login />} />

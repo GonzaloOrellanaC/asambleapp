@@ -51,6 +51,10 @@ export function SuperAdmin() {
     }
   };
 
+  const handleDeleteClick = (id: string, name: string) => {
+    setConfirmDeleteModal({ id, name });
+  };
+
   const [closeModal, setCloseModal] = useState<{ id: string, subject: string } | null>(null);
   const [customResponse, setCustomResponse] = useState('');
 
