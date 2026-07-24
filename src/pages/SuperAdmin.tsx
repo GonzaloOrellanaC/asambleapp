@@ -14,6 +14,8 @@ export function SuperAdmin() {
   const [activeTab, setActiveTab] = useState<'system' | 'tickets' | 'visits'>('system');
   const [visitData, setVisitData] = useState<any>(null);
   const [loadingVisits, setLoadingVisits] = useState(true);
+  const [orgFilter, setOrgFilter] = useState<'all' | 'trial' | 'regular'>('all');
+  const [settingsOrgModal, setSettingsOrgModal] = useState<any | null>(null);
 
   const loadOrgs = () => {
     apiFetch('/api/organizations')
@@ -128,7 +130,7 @@ export function SuperAdmin() {
       <header className="h-16 flex items-center justify-between px-6 bg-white border-b border-slate-200 z-50 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <img src="/asambleapp_logo_redesign.svg" alt="AsambleApp" className="h-7 w-auto" />
+            <img src="/asambleapp_logo.png" alt="AsambleApp" className="h-7 w-auto object-contain" />
           </div>
           <div className="h-6 w-px bg-slate-200"></div>
           <div className="flex flex-col">
@@ -211,25 +213,116 @@ export function SuperAdmin() {
           {activeTab === 'system' && (
 
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+            <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
               <h2 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-slate-500">
                 <Building2 size={16} />
                 Organizaciones Activas
               </h2>
+              <div className="flex gap-2 text-xs">
+                <button
+                  onClick={() => setOrgFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                    orgFilter === 'all'
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  Todas
+                </button>
+                <button
+                  onClick={() => setOrgFilter('trial')}
+                  className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                    orgFilter === 'trial'
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  Prueba (Trial)
+                </button>
+                <button
+                  onClick={() => setOrgFilter('regular')}
+                  className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                    orgFilter === 'regular'
+                      ? 'bg-amber-600 text-white border-amber-600'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  De Pago
+                </button>
+              </div>
             </div>
             <div className="divide-y divide-slate-100">
-              {orgs.map((org: any) => (
+              {orgs
+                .filter((org: any) => {
+                  const isTrial = org.trial ?? true;
+                  if (orgFilter === 'trial') return isTrial;
+                  if (orgFilter === 'regular') return !isTrial;
+                  return true;
+                })
+                .map((org: any) => (
                 <div key={org.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
                   <div>
-                    <h3 className="font-semibold text-slate-800">{org.name}</h3>
-                    <p className="text-slate-400 text-sm tracking-wide">/{org.customUrl}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-slate-800">{org.name}</h3>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${
+                        (org.trial ?? true)
+                          ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                          : 'bg-amber-50 text-amber-700 border-amber-200' 
+                      }`}>
+                        Plan: {(org.trial ?? true) 
+                          ? 'Prueba (Trial)' 
+                          : (() => {
+                              switch(org.plan) {
+                                case 'edificio_express': return 'Edificio Express';
+                                case 'condominio_grande': return 'Condominio Grande';
+                                case 'evento_pyme': return 'Evento Pyme';
+                                case 'evento_pro': return 'Evento Pro';
+                                case 'campus_estudiantil': return 'Campus Estudiantil';
+                                case 'publico_base': return 'Público Base';
+                                case 'publico_avanzado': return 'Público Avanzado';
+                                default: return org.plan || 'De Pago';
+                              }
+                            })()
+                        }
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-400 flex-wrap">
+                      <span className="tracking-wide font-mono">/{org.customUrl}</span>
+                      {(org.trial ?? true) ? (
+                        org.createdAt && (() => {
+                          const startDate = new Date(org.createdAt);
+                          const endDate = new Date(org.createdAt);
+                          endDate.setDate(endDate.getDate() + 30);
+                          return (
+                            <span>
+                              • Caducidad: <strong>{endDate.toLocaleDateString()}</strong>
+                            </span>
+                          );
+                        })()
+                      ) : (
+                        (() => {
+                          const baseDate = org.trialEndedAt ? new Date(org.trialEndedAt) : new Date(org.createdAt);
+                          const billingDate = new Date(baseDate);
+                          billingDate.setMonth(billingDate.getMonth() + 1);
+                          return (
+                            <span>
+                              • Facturación: <strong>{billingDate.toLocaleDateString()}</strong>
+                            </span>
+                          );
+                        })()
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg shadow-sm border border-slate-200 flex items-center justify-center font-bold text-white text-xs" style={{ backgroundColor: org.styles.primaryColor }}>
-                      {org.name.charAt(0)}
-                    </div>
+                    {org.logoUrl ? (
+                      <img src={org.logoUrl} alt={org.name} className="w-8 h-8 rounded-lg object-cover shadow-sm border border-slate-200" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-lg shadow-sm border border-slate-200 flex items-center justify-center font-bold text-white text-xs" style={{ backgroundColor: org.styles?.primaryColor || '#1d4ed8' }}>
+                        {org.name.charAt(0)}
+                      </div>
+                    )}
                     <button 
-                      onClick={() => console.log('Settings for', org.name)}
+                      onClick={() => setSettingsOrgModal(org)}
                       className="p-2 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100"
                       title="Configuración"
                     >
@@ -566,6 +659,122 @@ export function SuperAdmin() {
                 className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-70 flex items-center gap-2"
               >
                 {deletingId === confirmDeleteModal.id ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Organization Settings Modal */}
+      {settingsOrgModal && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100] p-4 font-sans">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 text-slate-900">Configuración de Organización</h3>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre</label>
+                <div className="flex items-center gap-3">
+                  {settingsOrgModal.logoUrl ? (
+                    <img src={settingsOrgModal.logoUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-slate-200" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">
+                      {settingsOrgModal.name?.charAt(0)}
+                    </div>
+                  )}
+                  <p className="font-semibold text-slate-800 text-lg">{settingsOrgModal.name}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">URL Personalizada</label>
+                <p className="font-mono text-sm text-slate-600">/{settingsOrgModal.customUrl}</p>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-800 font-sans">Modo de Prueba (Trial)</h4>
+                  <p className="text-xs text-slate-400 font-sans">Si está activo, la organización se considerará en prueba de 30 días.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer" 
+                    checked={settingsOrgModal.trial ?? true} 
+                    onChange={(e) => {
+                      const isTrial = e.target.checked;
+                      setSettingsOrgModal({
+                        ...settingsOrgModal,
+                        trial: isTrial,
+                        plan: isTrial ? 'trial' : (settingsOrgModal.plan === 'trial' ? 'edificio_express' : settingsOrgModal.plan)
+                      });
+                    }}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              {!(settingsOrgModal.trial ?? true) && (
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 font-sans">
+                    Seleccionar Plan de Pago
+                  </label>
+                  <select
+                    value={settingsOrgModal.plan || 'edificio_express'}
+                    onChange={(e) => {
+                      setSettingsOrgModal({
+                        ...settingsOrgModal,
+                        plan: e.target.value
+                      });
+                    }}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-sans text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="edificio_express">Edificio Express ($24.000 + IVA/mes)</option>
+                    <option value="condominio_grande">Condominio Grande ($48.000 + IVA/mes)</option>
+                    <option value="evento_pyme">Plan Evento Pyme ($320.000 + IVA)</option>
+                    <option value="evento_pro">Plan Evento Pro ($640.000 + IVA)</option>
+                    <option value="campus_estudiantil">Campus Estudiantil ($800.000 + IVA/año)</option>
+                    <option value="publico_base">Plan Público Base ($2.800.000 + IVA Anual)</option>
+                    <option value="publico_avanzado">Plan Público Avanzado ($5.200.000 + IVA Anual)</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <button 
+                type="button" 
+                onClick={() => setSettingsOrgModal(null)} 
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium text-sm"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                onClick={async () => {
+                  try {
+                    const res = await apiFetch(`/api/organizations/${settingsOrgModal.id || settingsOrgModal._id}`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        trial: settingsOrgModal.trial,
+                        plan: settingsOrgModal.plan
+                      })
+                    });
+                    if (res.ok) {
+                      setSettingsOrgModal(null);
+                      loadOrgs();
+                    } else {
+                      alert('Error al guardar configuración');
+                    }
+                  } catch (e) {
+                    console.error(e);
+                    alert('Error de conexión');
+                  }
+                }}
+                className="px-4 py-2 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800"
+              >
+                Guardar
               </button>
             </div>
           </div>

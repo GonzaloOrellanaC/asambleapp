@@ -37,6 +37,8 @@ const orgSchema = new mongoose.Schema({
   styles: { primaryColor: String },
   logoUrl: String,
   plan: { type: String, default: 'free' },
+  trial: { type: Boolean, default: true },
+  trialEndedAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
   expirationEmailSent: { type: Boolean, default: false },
   clientId: { type: Number, unique: true },
@@ -254,13 +256,20 @@ const VerificationCode = mongoose.model('VerificationCode', verificationCodeSche
 
 // Seed function
 async function seedDatabase() {
+  try {
+    await Organization.updateMany({ trial: { $exists: false } }, { $set: { trial: true } });
+  } catch (err) {
+    console.error("Error migrating organizations to default trial value:", err);
+  }
+
   const orgCount = await Organization.countDocuments();
   if (orgCount === 0) {
     console.log("Seeding database...");
     const org = await Organization.create({
       name: "Congreso Nacional",
       customUrl: "congreso",
-      styles: { primaryColor: "#1d4ed8" }
+      styles: { primaryColor: "#1d4ed8" },
+      trial: true
     });
 
     const superAdmin = await User.create({
@@ -863,12 +872,33 @@ async function startServer() {
   app.post("/api/organizations/:id", async (req, res) => {
     try {
       console.log("UPDATE ORG BODY", req.body);
-      const { customUrl, styles, logoUrl, settings } = req.body;
+      const { customUrl, styles, logoUrl, settings, trial, plan } = req.body;
+      
+      const existingOrg = await Organization.findById(req.params.id);
+      if (!existingOrg) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+
       const updateData: any = {};
       if (customUrl !== undefined) updateData.customUrl = customUrl;
       if (styles !== undefined) updateData.styles = styles;
       if (logoUrl !== undefined) updateData.logoUrl = logoUrl;
       if (settings !== undefined) updateData.settings = settings;
+
+      if (trial !== undefined) {
+        updateData.trial = trial;
+        if (trial === false) {
+          if (existingOrg.trial === true || !existingOrg.trialEndedAt) {
+            updateData.trialEndedAt = new Date();
+          }
+          updateData.plan = plan || existingOrg.plan || 'edificio_express';
+        } else {
+          updateData.trialEndedAt = null;
+          updateData.plan = 'trial';
+        }
+      } else if (plan !== undefined) {
+        updateData.plan = plan;
+      }
 
       const org = await Organization.findByIdAndUpdate(
         req.params.id,
@@ -1342,7 +1372,8 @@ async function startServer() {
       const org = await Organization.create({
         name: orgName,
         customUrl,
-        plan: plan || 'free',
+        plan: 'trial',
+        trial: true,
         styles: { primaryColor: "#1d4ed8" },
         clientId: nextClientId,
         timestampId
@@ -1522,6 +1553,22 @@ async function startServer() {
       res.status(500).json({ error: "Error procesando solicitud" });
     }
   });
+  app.post("/api/superadmin/login", (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const superAdminUser = process.env.SUPER_ADMIN_USER || 'superadmin@asambleapp.com';
+      const superAdminPass = process.env.SUPER_ADMIN_PASS || 'admin123';
+
+      if (email === superAdminUser && password === superAdminPass) {
+        res.json({ success: true, token: 'true' });
+      } else {
+        res.status(401).json({ error: "Credenciales de superadministrador incorrectas" });
+      }
+    } catch (e) {
+      res.status(500).json({ error: "Error en el servidor" });
+    }
+  });
+
   app.post("/api/login", async (req, res) => {
     try {
       const { email, password } = req.body;
